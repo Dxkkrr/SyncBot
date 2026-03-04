@@ -13,3 +13,6 @@ propcache==0.4.1
 python-dotenv==1.2.2
 qrcode==8.2
 yarl==1.23.0
+yt-dlp
+spotipy
+PyNaCl

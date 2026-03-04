@@ -36,7 +36,9 @@ class SyncBot(commands.Bot):
         )
 
     async def setup_hook(self):
-        await self.tree.sync()
+        guild = discord.Object(id=1477175496210124802)
+        self.tree.copy_global_to(guild=guild)
+        await self.tree.sync(guild=guild)
 
     async def on_ready(self):
         print(f"O Bot {self.user} está Ligado.")
