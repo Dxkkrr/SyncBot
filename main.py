@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
-import asyncio
 
 load_dotenv()
 
@@ -11,13 +10,19 @@ class SyncBot(commands.Bot):
         intents = discord.Intents.all()
         super().__init__(command_prefix='$', intents=intents)
 
-        async def setup_hook(self):
-            
-            for arquivo in os.listdir('./cogs'):
-                if arquivo.endswith('.py'):
+    async def setup_hook(self):
+        print("Carregando cogs...")
+
+        for arquivo in os.listdir('cogs'):
+            if arquivo.endswith('.py') and arquivo != '__init__.py':
+                try:
                     await self.load_extension(f'cogs.{arquivo[:-3]}')
-            
-            await self.tree.sync()
+                    print(f'Cog {arquivo} carregado')
+                except Exception as e:
+                    print(f'Erro ao carregar {arquivo}: {e}')
+
+        await self.tree.sync()
+        print("Comandos sincronizados!")
 
 bot = SyncBot()
 
@@ -28,6 +33,6 @@ async def on_ready():
 TOKEN = os.getenv("TOKEN")
 
 if TOKEN is None:
-    raise ValueError("O token do bot não foi encontrado. Certifique-se de que o arquivo .env contém a variável TOKEN.")
+    raise ValueError("O token do bot não foi encontrado. Verifique a variável TOKEN no Railway ou no .env.")
 
 bot.run(TOKEN)
