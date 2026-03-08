@@ -27,6 +27,7 @@ async def on_ready():
 
     for guild in bot.guilds:
         invites[guild.id] = await guild.invites()
+        await atualizar_painel(guild)
 
 
 # Novo membro
@@ -48,6 +49,10 @@ async def on_member_join(member: discord.Member):
             f"Leia as regras {canal_regras.mention}!"
         )
 
+    await atualizar_painel(member.guild)
+
+
+# Invite tracking
     guild = member.guild
     new_invites = await guild.invites()
 
@@ -77,6 +82,61 @@ async def on_member_remove(member: discord.Member):
         await canal_bemvindo.send(
             f"{member.mention} saiu do servidor!"
         )
+
+    await atualizar_painel(member.guild)
+
+#Contador de membros
+canal_contador = "1479641366689485011"
+mensagens_stats = None
+
+# Busca ou cria a mensagem do painel de estatísticas
+async def pegar_painel(canal):
+    async for msg in canal.history(limit=10):
+        if msg.author == canal.guild.me and msg.embeds:
+            return msg
+        
+    return await canal.send("Carregando estatísticas...")
+
+# Atualiza o painel de estatísticas do servidor
+async def atualizar_painel(guild):
+    global mensagens_stats
+
+    canal = bot.get_channel(int(canal_contador))
+
+    total_membros = guild.member_count
+    bots = len([m for m in guild.members if m.bot])
+    membros = total_membros - bots
+    online = len([m for m in guild.members if m.status != discord.Status.offline])
+    offline = total_membros - online
+    em_voz = len([m for m in guild.members if m.voice])
+    boosters = guild.premium_subscription_count
+
+# Atualiza o nome do canal com o número total de membros
+    await canal.edit(name=f"📊 membros-{total_membros}")
+
+    embed = discord.Embed(
+        title="📊 Estatísticas do Servidor",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="👥 Total", value=f"{total_membros}", inline=True)
+    embed.add_field(name="🧑 Usuários", value=f"{membros}", inline=True)
+    embed.add_field(name="🤖 Bots", value=f"{bots}", inline=True)
+    embed.add_field(name="🟢 Online", value=f"{online}", inline=True)
+    embed.add_field(name="🔴 Offline", value=f"{offline}", inline=True)
+    embed.add_field(name="🔊 Em Voz", value=f"{em_voz}", inline=True)
+    embed.add_field(name="💎 Boosters", value=f"{boosters}", inline=True)
+
+    embed.set_footer(text=f"Servidor: {guild.name}")
+    
+    painel = await pegar_painel(canal)
+    await painel.edit(content=None, embed=embed)
+
+    if mensagens_stats is None:
+        msg = await canal.send(embed=embed)
+        mensagens_stats = msg.id
+    else:
+        msg = await canal.fetch_message(mensagens_stats)
+        await msg.edit(embed=embed)
 
 
 # Comando
