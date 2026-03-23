@@ -263,6 +263,47 @@ class Comandos(commands.Cog):
 
 
         await interaction.followup.send("✅ | Anúncio enviado.", ephemeral=True)
+        
+# Adição de Cargos Pelo comando
+
+    @app_commands.command(name="addcargo", description="Adicionar Cargo")
+    @app_commands.describe(membro="Usuario", cargo="Cargo que vai ser adicionado")
+    
+    async def addcargo(
+        self,
+        interaction: discord.Interaction,
+        membro: discord.Member,
+        cargo: discord.Role
+    ):
+        await interaction.response.defer(ephemeral=True)
+        
+#Permissão do Usuário
+        if not interaction.user.guild_permissions.manage_roles:
+            await interaction.followup.send("❌ | Você não tem permissão para gerenciar cargos", ephemeral=True)
+            return
+        
+# Permissão do Bot
+        if not interaction.guild.me.guild_permissions.manage_roles:
+            await interaction.followup.send("❌ | Eu não tenho permissão para gerenciar cargos", ephemeral=True)
+            return
+        
+# Hierarquia do Bot
+        if cargo >= interaction.guild.me.top_role:
+            await interaction.followup.send("❌ | Não posso adicionar este cargo ( Ele está acima do meu )", ephemeral=True)
+            return
+        
+# Hierarquia do usuário
+        if cargo >= interaction.user.top_role:
+            await interaction.followup.send("❌ | Você não pode adicionar um cargo maior ou igual ao seu")
+            return
+        
+        try:
+            await membro.add_roles(cargo)
+            
+            await interaction.followup.send(f"✅ | Cargo {cargo.mention} adicionado a {membro.mention}.")
+        
+        except Exception as e:
+            await interaction.followup.send(f"❌ | Erro ao adicionar cargo: {e}")
 
 async def setup(bot):
     await bot.add_cog(Comandos(bot))
