@@ -304,6 +304,42 @@ class Comandos(commands.Cog):
         
         except Exception as e:
             await interaction.followup.send(f"❌ | Erro ao adicionar cargo: {e}")
+            
+# Remoção de Cargos Pelo Comando
+
+    @app_commands.command(name="rmvcargo", description="Remove cargo de um membro")
+    @app_commands.describe(membro="Usuário que terá cargo removido", cargo="Cargo a ser removido")
+    
+    async def rmvcargo(self, interaction: discord.Interaction, membro:discord.Member, cargo: discord.Role):
+        await interaction.response.defer(ephemeral=True)
+        
+# Permissão do usuário
+        if not interaction.user.guild_permissions.manage_roles:
+            await interaction.followup.send("❌ | Você não tem permissão.")
+            return
+        
+        if not interaction.guild.me.guild_permissions.manage_roles:
+            await interaction.followup.send("❌ | Não tenho permissão para gerenciar cargos", ephemeral=True)
+            return
+        
+        if cargo >= interaction.guild.me.top_role:
+            await interaction.followup.send("❌ | Não posso remover esse cargo ( Ele está acima do meu )", ephemeral=True)
+            return
+        
+        if cargo >= interaction.user.top_role:
+            await interaction.followup.send("❌ | Você não pode remover um cargo maior ou igual ao seu.", ephemeral=True)
+            return
+        
+        if cargo not in membro.roles:
+            await interaction.followup.send("⚠️ | Esse usuário não possui este cargo")
+            return
+        
+        try:
+            await membro.remove_roles(cargo)
+            await interaction.followup.send(f"Cargo {cargo.mention} removido de {membro.mention} com Sucesso!", ephemeral=True)
+            
+        except Exception as e:
+            await interaction.followup.send(f"❌ | Erro ao remover o cargo: {e}")
 
 async def setup(bot):
     await bot.add_cog(Comandos(bot))
