@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 
 class Comandos(commands.Cog):
 
@@ -155,7 +155,7 @@ class Comandos(commands.Cog):
             f"⚠️ {membro.mention} recebeu um aviso.\nMotivo: {motivo}"
         )
 
-# Clear ( Mensagens )
+# Clear ( Staff )
     @app_commands.command(name="clear", description="Apagar mensagens")
     @app_commands.describe(amount="Quantidade de mensagens (1-100)")
 
@@ -176,6 +176,36 @@ class Comandos(commands.Cog):
         await interaction.followup.send(
             f"🧹 | {amount} mensagens apagadas."
         )
+
+# Clear ( Publico )
+    @app_commands.command(name="cl", description="Apaga suas 2 últimas mensagens (Limite de 5 Minutos)")
+
+    async def cl(self, interaction:discord.Interaction):
+        await interaction.response.defer()
+
+        agora = datetime.now(timezone.utc)
+        limite = timedelta(minutes=5)
+
+        mensagens = []
+
+        async for msg in interaction.channel.history(limit=50):
+            if msg.author.id != interaction.user.id:
+                continue
+
+            if len(mensagens) == 2:
+                break
+
+            if not mensagens:
+                await interaction.followup.send("⚠️ | Nenhuma mensagem recente encontrada (até 5 minutos)")
+                return
+            
+            for msg in mensagens:
+                try:
+                    await msg.delete()
+                except:
+                    pass
+
+                await interaction.followup.send(f"🧹 | {len(mensagens)} mensagem apagada!")
 
 # Lock ( Mensagens )
     @app_commands.command(name="lock", description="Bloquear chat")
